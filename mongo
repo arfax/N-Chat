@@ -1,0 +1,13 @@
+Comandos de Mongo :
+
+>show dbs --> enlista las bases de datos
+
+> use NodePrueba --> crea una base de datos temporal, hasta insertar datos en la 						base se vulve real 
+
+>show collections --> Muestra las tablas que tiene la base de datos
+
+>db.users.insert({ name: 'arfax', age : 22}) --> Inserta datos en la tabla users
+
+>db.users.find({ name: 'Arfax' })  --> busca todos los nombre con Arfax
+
+>db.users.findOne({ name: 'Arfax'}) --> busca el primero que se llama Arfax

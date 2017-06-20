@@ -1,0 +1,156 @@
+{% extends "../base.html" %}
+
+{% block content %}
+
+<div class="container">
+	<br>
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<div class="row">
+				<div class="col-md-9">
+					<div class="panel panel-default">
+					  <div class="panel-body panel-chat-body">
+					    <div class="panel panel-default panel-default-customize" >
+						  <div class="panel-body panel-body-customize" >
+						  	<div class="coloca-mensaje">
+
+						  	</div>
+						  </div>
+						</div>
+					  </div>
+					  <div class="panel-footer">
+					  	<div class="row">
+					  		<div class="col-md-10" style="padding-right:5px">
+					  			<input type="text"  class="form-control"  id="dialog" placeholder="Escribe" required>
+					  		</div>
+					  		<div class="col-md-2" style="padding-left:5px">
+					  			<button id="boton" type="button" class="btn btn-warning col-md-12" id="enviar-chat">Enviar</button>
+					  		</div>
+					  	</div>
+					  </div>
+					</div>
+				</div>
+				<div class="col-md-3 conectados">
+					<div class="panel panel-default">
+						<div class="panel-body panel-body-conectados">
+							<span style="color:#ABABAB">Conectados</span>
+							<ul class="nav nav-pills nav-stacked" id="conectados">
+                            {% for user in users %}
+                               <li>
+                                   <a href="#">
+                                       <div class="media media-conectados">
+                                           <a class="pull-left" href="#">
+                                               <img class="img-circle" src="{{user.url_foto}}" width="20px" height="20px">
+                                           </a>
+                                           <div class="media-body"><table><tr><td><small><strong>{{user.user}}</td><td><div class="circleo" style="padding-right:0.1cm;" ></div></td></strong></small></tr></table></div>
+                                       </div>
+                                   </a>
+                               </li>
+                           {% endfor %}
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+	<script>
+
+		var socket = io('/chat');
+		// console.log("cliente",socket);
+		$(document).on('ready', function(){
+
+			var datos = {
+				username : '{{ user }}',
+				url_foto : '{{ url_foto }}'
+			}
+			socket.emit('nuevo usuario', datos);
+		});
+
+		socket.on('devolviendo usuario', function(data){
+			console.log(data);
+			$('#conectados li').each(function (i, item){
+				username = item.innerText.replace(/\s/g, '');
+				if ( username == data.username) {
+					$(item).remove();
+				}
+			});
+			var html ='<li><a href="#"><div class="media media-conectados"><a class="pull-left" href="#"><img class="img-circle" src="'+ data.url_foto +'" width="20px" height="20px"></a> <div class="media-body"><table><tr><td><small><strong>'+data.username+'</td><td><div class="circleo" style="padding-right:0.1cm;" ></div></td></strong></small></tr></table></div></div></a></li>';
+				$('#conectados').append(html);
+				
+
+		});
+
+		socket.on('logout', function(data){
+
+			$('#conectados li').each(function (i, item){
+				username = item.innerText.replace(/\s/g, '');
+				
+				if ( username == data) {
+					$(item).remove();
+				}
+			});
+		});
+
+
+		$("#boton").on("click", function(){
+
+			var datos = {
+				user : '{{ user }}',
+				url_foto : '{{ url_foto }}',
+				message : $('#dialog').val()
+			}
+			socket.emit('nuevo mensaje', datos);
+		});
+
+		socket.on('devolviendo mensaje', function (data){
+			agregarChat(data);
+		});
+
+
+		// $('#enviar-chat').on('click', agregarChat);
+		// $(document).on('keypress', enviarChat);
+
+		// function enviarChat(valor){
+		// 	if(valor.which == 13){
+		// 		agregarChat();
+		// 	}
+		// }
+
+		function agregarChat(data){
+
+			// var chat = $('#dialog').val();
+
+			var ahora = new Date();
+			var stringAhora = ahora.toLocaleString(); 	
+
+			if(ahora.getHours()>=12){
+				var h = stringAhora+' pm';
+			}
+			else{
+				var h = stringAhora+' am';
+			}
+
+			$('.coloca-mensaje').append('<div class="media media-chat"><a class="pull-left" href="#"><img class="img-circle" src="'+data.url_foto+'" width="40px" height="40px"></a><div class="media-body"><h5 class="media-heading">'+data.user+' - <span class="chat-fecha">'+h+'</span></h5><span class="chat-content text-primary">'+data.message+'</span></div></div>');	
+
+			var alto = $('.coloca-mensaje').height();
+			var altoChat = $('.panel-body-customize').height();
+
+			var barraScroll = alto-altoChat;
+
+			if(barraScroll>0){
+				$('.panel-body-customize').scrollTop(barraScroll);
+			}
+
+			$("#dialog").val("");
+			
+
+		}
+		
+	</script>
+{% endblock %}
